@@ -399,35 +399,49 @@ function Logo() {
   return <div className="grid h-8 w-8 place-content-center rounded-xl bg-emerald-600 text-white shadow"><span className="text-sm font-bold">AI</span></div>;
 }
 
-// Backend integration shims
+// =============================================================
+// Backend integration shims — now connected to FastAPI backend
+// =============================================================
+
+// 🧠 Backend API base URL
+const BACKEND_URL = "https://ai-learning-backend-nrx3.onrender.com";
+
+// --- Chat ---
 async function callBackendChat(messages: { role: string; content: string }[]) {
-  const res = await fetch("/api/chat", {
+  const res = await fetch(`${BACKEND_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    // Our FastAPI expects a single "message" string
+    body: JSON.stringify({ message: messages[messages.length - 1].content }),
   });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.reply ?? JSON.stringify(data);
+  // FastAPI returns { response: "...content..." }
+  return data.response ?? JSON.stringify(data);
 }
 
+// --- Text Generation ---
 async function callBackendText(prompt: string) {
-  const res = await fetch("/api/generate", {
+  const res = await fetch(`${BACKEND_URL}/generate-text`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt }),
   });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.text ?? JSON.stringify(data);
+  // FastAPI returns { output: "...content..." }
+  return data.output ?? JSON.stringify(data);
 }
 
+// --- Image Classification (optional stub) ---
 async function callBackendImage(file: File) {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch("/api/classify", { method: "POST", body: form });
+  const res = await fetch(`${BACKEND_URL}/classify`, {
+    method: "POST",
+    body: form,
+  });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.label ?? JSON.stringify(data);
 }
-
