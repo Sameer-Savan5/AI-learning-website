@@ -400,34 +400,35 @@ function Logo() {
 }
 
 // Backend integration shims
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 async function callBackendChat(messages: { role: string; content: string }[]) {
-  const res = await fetch("/api/chat", {
+  const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ message: messages[messages.length - 1].content }),
   });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.reply ?? JSON.stringify(data);
+  return data.response ?? JSON.stringify(data);
 }
 
 async function callBackendText(prompt: string) {
-  const res = await fetch("/api/generate", {
+  const res = await fetch(`${API_URL}/generate-text`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt }),
   });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.text ?? JSON.stringify(data);
+  return data.output ?? JSON.stringify(data);
 }
 
 async function callBackendImage(file: File) {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch("/api/classify", { method: "POST", body: form });
+  const res = await fetch(`${API_URL}/classify`, { method: "POST", body: form });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.label ?? JSON.stringify(data);
 }
-
